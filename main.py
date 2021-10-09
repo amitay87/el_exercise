@@ -1,4 +1,5 @@
 import hashlib
+import multiprocessing
 import urllib.request
 
 from sanic import Sanic
@@ -6,6 +7,7 @@ from sanic.response import json
 # import requests
 
 import db
+import second_service
 
 
 app = Sanic("My Hello, world app")
@@ -48,16 +50,17 @@ async def test(request): # TODO: refactor function name
         db.create_files_table_if_not_exist(conn)
         db.insert_meeting_file(conn, meeting_uuid=id, calculated_hash=calculated_hash)
         conn.close()
-    return json({'status': 'done'})
+    return await json({'status': 'done'})
 
-
-@app.route('/get_calculated_hash/<meeting_uuid>', methods=['GET'])
-async def get_calculated_hash(request, meeting_uuid): # TODO: refactor function name
-    print(f"AAA request,  meeting_uuid: {request, meeting_uuid}")
-    conn = db.get_connection()
-    calculated_hash = db.get_calculated_hash(conn, meeting_uuid)
-    return json({'calculated_hash': calculated_hash})
 
 
 if __name__ == '__main__':
-    app.run()
+    jobs = []
+
+    p = multiprocessing.Process(target=second_service.worker)
+    jobs.append(p)
+    p.start()
+    app.run() # workers=4
+
+
+

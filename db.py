@@ -21,7 +21,8 @@ def create_files_table_if_not_exist(conn):
     print("Table created successfully")
 
 def insert_meeting_file(conn, meeting_uuid, calculated_hash):
-    # TODO: sanitize input
+    # TODO: sanitize input - Done
+    # TODO: handle edge case of duplicated UUID
     # meeting_uuid = meeting_uuid.replace('-','')
     query = f'''
     INSERT INTO Files (meeting_uuid, calculated_hash)
@@ -48,8 +49,8 @@ def get_calculated_hash(conn, meeting_uuid):
     rows = cur.fetchall()
     print(f"AAA len(rows): {len(rows)}")
     for row in rows:
-        print(row)
-        return row
+        print(f"AAA  row: {row}")
+        return row[0]
 
 
 
