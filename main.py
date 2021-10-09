@@ -5,6 +5,8 @@ from sanic import Sanic
 from sanic.response import json
 # import requests
 
+import db
+
 
 app = Sanic("My Hello, world app")
 
@@ -39,9 +41,16 @@ async def test(request): # TODO: refactor function name
         # TODO: consider making the requests asyncronously
         urllib.request.urlretrieve(file['download_url'], saved_filename)
         # TODO: consider calculating hash asyncronously
-        print(hashlib.md5(file_as_bytes(open(saved_filename, 'rb'))).hexdigest())
+        calculated_hash = hashlib.md5(file_as_bytes(open(saved_filename, 'rb'))).hexdigest()
+        print(calculated_hash)
 
-    return json({'hello': 'world'})
+        conn = db.get_connection()
+        db.create_files_table_if_not_exist(conn)
+        db.insert_meeting_file(conn, meeting_uuid=id, calculated_hash=calculated_hash)
+        conn.close()
+    return json({'status': 'done'})
+
+
 
 if __name__ == '__main__':
     app.run()
