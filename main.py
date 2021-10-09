@@ -6,7 +6,7 @@ from sanic import Sanic
 from sanic.response import json
 # import requests
 
-import db
+from db import DBManager
 import second_service
 
 
@@ -46,11 +46,11 @@ async def test(request): # TODO: refactor function name
         calculated_hash = hashlib.md5(file_as_bytes(open(saved_filename, 'rb'))).hexdigest()
         print(calculated_hash)
 
-        conn = db.get_connection()
-        db.create_files_table_if_not_exist(conn)
-        db.insert_meeting_file(conn, meeting_uuid=id, calculated_hash=calculated_hash)
-        conn.close()
-    return await json({'status': 'done'})
+        with DBManager() as dbm:
+            dbm.create_files_table_if_not_exist()
+            dbm.insert_meeting_file(meeting_uuid=id, calculated_hash=calculated_hash)
+
+    return json({'status': 'done'})
 
 
 

@@ -2,58 +2,67 @@ import sqlite3
 
 # TODO: add exception handling
 
-# TODO: refactor to a class with connection as an attribute (state)
-def get_connection():
-    conn = sqlite3.connect('meetings.db')
-    print("Opened database successfully")
-    return conn
+# TODO: refactor to a class with connection as an attribute (state) (singleton?)
+class DBManager():
+    def __init__(self):
+        # self.conn = sqlite3.connect('meetings.db')
+        # print("Opened database successfully")
+        pass
 
-def create_files_table_if_not_exist(conn):
-    conn.execute('''CREATE TABLE IF NOT EXISTS Files 
-                    (
-                       ID INT PRIMARY KEY     , 
-                       MEETING_UUID           TEXT    , 
-                       CALCULATED_HASH            TEXT    
-                    )
-                '''
-                 )
+    def __enter__(self):
+        self.conn = sqlite3.connect('meetings.db')
+        return self
 
-    print("Table created successfully")
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
 
-def insert_meeting_file(conn, meeting_uuid, calculated_hash):
-    # TODO: sanitize input - Done
-    # TODO: handle edge case of duplicated UUID
-    # meeting_uuid = meeting_uuid.replace('-','')
-    query = f'''
-    INSERT INTO Files (meeting_uuid, calculated_hash)
-    VALUES( ?,	?);
-    '''
+    def create_files_table_if_not_exist(self):
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS Files 
+                        (
+                           ID INT PRIMARY KEY     , 
+                           MEETING_UUID           TEXT    , 
+                           CALCULATED_HASH            TEXT    
+                        )
+                    '''
+                     )
 
-    conn.execute(query, (meeting_uuid, calculated_hash))
-    conn.commit()
+        print("Table created successfully")
 
-    # conn.close()
+    def insert_meeting_file(self, meeting_uuid, calculated_hash):
+        # TODO: sanitize input - Done
+        # TODO: handle edge case of duplicated UUID
+        # meeting_uuid = meeting_uuid.replace('-','')
+        query = f'''
+        INSERT INTO Files (meeting_uuid, calculated_hash)
+        VALUES( ?,	?);
+        '''
+
+        self.conn.execute(query, (meeting_uuid, calculated_hash))
+        self.conn.commit()
+
+        # conn.close()
 
 
-def get_calculated_hash(conn, meeting_uuid):
-    query = f'''
-        SELECT calculated_hash
-        FROM Files
-        WHERE meeting_uuid = ?;
-    '''
-    print(f"AAA query: {query}")
-    print(f"AAA meeting_uuid: {meeting_uuid}")
-    cur = conn.cursor()
-    cur.execute(query, (meeting_uuid, ))
+    def get_calculated_hash(self, meeting_uuid):
+        query = f'''
+            SELECT calculated_hash
+            FROM Files
+            WHERE meeting_uuid = ?;
+        '''
+        print(f"AAA query: {query}")
+        print(f"AAA meeting_uuid: {meeting_uuid}")
+        cur = self.conn.cursor()
+        cur.execute(query, (meeting_uuid, ))
 
-    rows = cur.fetchall()
-    print(f"AAA len(rows): {len(rows)}")
-    for row in rows:
-        print(f"AAA  row: {row}")
-        return row[0]
+        rows = cur.fetchall()
+        print(f"AAA len(rows): {len(rows)}")
+        for row in rows:
+            print(f"AAA  row: {row}")
+            return row[0]
 
 
 
 if __name__ == '__main__':
-    conn = get_connection()
-    create_files_table_if_not_exist(conn)
+    pass
+    # conn = get_connection()
+    # create_files_table_if_not_exist(conn)
