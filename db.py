@@ -1,5 +1,7 @@
 import sqlite3
 
+# TODO: add exception handling
+
 # TODO: refactor to a class with connection as an attribute (state)
 def get_connection():
     conn = sqlite3.connect('meetings.db')
@@ -30,6 +32,26 @@ def insert_meeting_file(conn, meeting_uuid, calculated_hash):
     conn.commit()
 
     # conn.close()
+
+
+def get_calculated_hash(conn, meeting_uuid):
+    query = f'''
+        SELECT calculated_hash
+        FROM Files
+        WHERE meeting_uuid = ?;
+    '''
+    print(f"AAA query: {query}")
+    print(f"AAA meeting_uuid: {meeting_uuid}")
+    cur = conn.cursor()
+    cur.execute(query, (meeting_uuid, ))
+
+    rows = cur.fetchall()
+    print(f"AAA len(rows): {len(rows)}")
+    for row in rows:
+        print(row)
+        return row
+
+
 
 if __name__ == '__main__':
     conn = get_connection()
