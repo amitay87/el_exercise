@@ -9,9 +9,10 @@ import grequests
 
 from db import DBManager
 import second_service
+import json as python_json
 
 
-app = Sanic("My Hello, world app")
+app = Sanic("handle notify app")
 
 def file_as_bytes(file):
     with file:
@@ -26,14 +27,13 @@ def file_as_bytes(file):
 #     return hash_md5.hexdigest()
 
 
-
-# TODO: consider handling requests asyncronously
 @app.route('/notify_record_completion', methods=['POST'])
 async def handle_notify_record_completion(request): # TODO: refactor function name
 
     print(f"AAA request.body: {request.body}")
+    body_json = python_json.loads(str(request.body).replace('\'', '\"')[2:-1])
 
-    recording_files = request.json['payload']['object']['recording_files']
+    recording_files = body_json['payload']['object']['recording_files']
     print(f"AAA recording_files: {recording_files}")
     urls = [rf['download_url'] for rf in recording_files]
     print(f"AAA urls: {urls}")
@@ -49,9 +49,6 @@ async def handle_notify_record_completion(request): # TODO: refactor function na
         extension = file['file_extension']
         id = file['id']
         saved_filename = f"{id}.{extension}"
-        # TODO: consider making the requests asyncronously
-
-        # urllib.request.urlretrieve(file['download_url'], saved_filename)
 
         with open(saved_filename, 'ab') as f:
                 print(downloads[idx].status_code)
