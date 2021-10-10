@@ -1,2 +1,3 @@
 sanic==21.9.1
 requests==2.26.0
+grequests

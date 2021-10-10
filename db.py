@@ -11,12 +11,13 @@ class DBManager():
 
     def __enter__(self):
         self.conn = sqlite3.connect('meetings.db')
+        self._create_files_table_if_not_exist()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.close()
 
-    def create_files_table_if_not_exist(self):
+    def _create_files_table_if_not_exist(self):
         self.conn.execute('''CREATE TABLE IF NOT EXISTS Files 
                         (
                            ID INT PRIMARY KEY     , 

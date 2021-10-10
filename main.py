@@ -5,6 +5,7 @@ import urllib.request
 from sanic import Sanic
 from sanic.response import json
 # import requests
+import grequests
 
 from db import DBManager
 import second_service
@@ -28,26 +29,40 @@ def file_as_bytes(file):
 
 # TODO: consider handling requests asyncronously
 @app.route('/notify_record_completion', methods=['POST'])
-async def test(request): # TODO: refactor function name
+async def handle_notify_record_completion(request): # TODO: refactor function name
 
     print(f"AAA request.body: {request.body}")
 
     recording_files = request.json['payload']['object']['recording_files']
-    download_urls = [rf['download_url'] for rf in recording_files]
-    print(f"AAA download_urls: {download_urls}")
+    print(f"AAA recording_files: {recording_files}")
+    urls = [rf['download_url'] for rf in recording_files]
+    print(f"AAA urls: {urls}")
+    rs = (grequests.get(u) for u in urls)
+    print(f"AAA rs: {rs}")
+    downloads = grequests.map(rs)
+    print(f"AAA downloads: {downloads}")
 
-    for file in recording_files:
+
+    print(f"AAA download_urls: {urls}")
+
+    for idx, file in enumerate(recording_files):
         extension = file['file_extension']
         id = file['id']
         saved_filename = f"{id}.{extension}"
         # TODO: consider making the requests asyncronously
-        urllib.request.urlretrieve(file['download_url'], saved_filename)
+
+        # urllib.request.urlretrieve(file['download_url'], saved_filename)
+
+        with open(saved_filename, 'ab') as f:
+                print(downloads[idx].status_code)
+                f.write(downloads[idx].content)
+
+
         # TODO: consider calculating hash asyncronously
         calculated_hash = hashlib.md5(file_as_bytes(open(saved_filename, 'rb'))).hexdigest()
         print(calculated_hash)
 
         with DBManager() as dbm:
-            dbm.create_files_table_if_not_exist()
             dbm.insert_meeting_file(meeting_uuid=id, calculated_hash=calculated_hash)
 
     return json({'status': 'done'})
