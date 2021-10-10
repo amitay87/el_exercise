@@ -21,7 +21,10 @@ def file_as_bytes(file):
 @app.route('/notify_record_completion', methods=['POST'])
 async def handle_notify_record_completion(request): # TODO: refactor function name
     body_json = python_json.loads(request.body.decode('ascii').replace('\'', '\"'))
-    recording_files = body_json['payload']['object']['recording_files']
+    try:
+        recording_files = body_json['payload']['object']['recording_files']
+    except KeyError:
+        return json({'status': 'recording files was not found'})
     urls = [rf['download_url'] for rf in recording_files]
     rs = (grequests.get(u) for u in urls)
     downloads = grequests.map(rs)
