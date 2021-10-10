@@ -4,11 +4,6 @@ import sqlite3
 
 # TODO: refactor to a class with connection as an attribute (state) (singleton?)
 class DBManager():
-    def __init__(self):
-        # self.conn = sqlite3.connect('meetings.db')
-        # print("Opened database successfully")
-        pass
-
     def __enter__(self):
         self.conn = sqlite3.connect('meetings.db')
         self._create_files_table_if_not_exist()
@@ -41,25 +36,23 @@ class DBManager():
         self.conn.execute(query, (meeting_uuid, calculated_hash))
         self.conn.commit()
 
-        # conn.close()
-
-
     def get_calculated_hash(self, meeting_uuid):
         query = f'''
             SELECT calculated_hash
             FROM Files
             WHERE meeting_uuid = ?;
         '''
-        print(f"AAA query: {query}")
-        print(f"AAA meeting_uuid: {meeting_uuid}")
+
         cur = self.conn.cursor()
         cur.execute(query, (meeting_uuid, ))
 
         rows = cur.fetchall()
         print(f"AAA len(rows): {len(rows)}")
-        for row in rows:
-            print(f"AAA  row: {row}")
-            return row[0]
+        if len(rows) > 0:
+            return rows[0][0]
+        # for row in rows:
+        #     print(f"AAA  row: {row}")
+        #     return row[0]
 
 
 
